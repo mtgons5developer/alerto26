@@ -1,0 +1,128 @@
+name: CD Pipeline
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: 'Environment to deploy to'
+        required: true
+        default: 'staging'
+        type: choice
+        options:
+        - staging
+        - production
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  deploy-staging:
+    name: Deploy to Staging
+    runs-on: ubuntu-latest
+    environment: staging
+    if: github.ref == 'refs/heads/develop' || github.event.inputs.environment == 'staging'
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID_STAGING }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY_STAGING }}
+        aws-region: us-east-1
+
+    - name: Set up Kubernetes tools
+      uses: azure/setup-kubectl@v3
+      with:
+        version: 'latest'
+
+    - name: Deploy to Kubernetes
+      run: |
+        # Update image tags in k8s manifests
+        sed -i "s|ghcr.io/.*/alerto26-backend:latest|ghcr.io/${{ github.repository_owner }}/alerto26-backend:${{ github.sha }}|g" k8s/backend/deployment.yaml
+        sed -i "s|ghcr.io/.*/alerto26-frontend:latest|ghcr.io/${{ github.repository_owner }}/alerto26-frontend:${{ github.sha }}|g" k8s/frontend/deployment.yaml
+        
+        # Apply manifests
+        kubectl apply -f k8s/ --namespace=staging --kubeconfig=<(echo "${{ secrets.KUBECONFIG_STAGING }}")
+        
+        # Wait for rollout
+        kubectl rollout status deployment/backend-api -n staging --timeout=300s --kubeconfig=<(echo "${{ secrets.KUBECONFIG_STAGING }}")
+        kubectl rollout status deployment/react-admin -n staging --timeout=300s --kubeconfig=<(echo "${{ secrets.KUBECONFIG_STAGING }}")
+
+    - name: Run smoke tests
+      run: |
+        STAGING_URL="https://staging.alerto26.app"
+        
+        # Test API health
+        curl -f $STAGING_URL/api/health/ || exit 1
+        
+        # Test GraphQL endpoint
+        curl -f $STAGING_URL/graphql -X POST -H "Content-Type: application/json" \
+          -d '{"query": "{ __typename }"}' || exit 1
+
+  deploy-production:
+    name: Deploy to Production
+    runs-on: ubuntu-latest
+    environment: production
+    if: github.ref == 'refs/heads/main' || startsWith(github.ref, 'refs/tags/v') || github.event.inputs.environment == 'production'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Configure AWS credentials
+      uses: aws-actions/configure-aws-credentials@v2
+      with:
+        aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        aws-region: us-east-1
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v2
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Deploy to EKS
+      uses: kodermax/kubectl-aws-eks@master
+      with:
+        cluster: alerto26-prod-cluster
+        args: |
+          apply -f k8s/ --namespace=production
+          rollout status deployment/backend-api -n production --timeout=300s
+          rollout status deployment/react-admin -n production --timeout=300s
+
+    - name: Run integration tests
+      run: |
+        PROD_URL="https://api.alerto26.app"
+        
+        # Test all critical endpoints
+        endpoints=("/health/" "/graphql" "/api/emergencies/")
+        
+        for endpoint in "${endpoints[@]}"; do
+          echo "Testing $PROD_URL$endpoint"
+          curl -f "$PROD_URL$endpoint" -H "Authorization: Bearer ${{ secrets.PRODUCTION_TEST_TOKEN }}" || exit 1
+        done
+
+    - name: Create GitHub Release
+      if: startsWith(github.ref, 'refs/tags/v')
+      uses: softprops/action-gh-release@v1
+      with:
+        generate_release_notes: true
+
+    - name: Notify deployment
+      uses: 8398a7/action-slack@v3
+      with:
+        status: ${{ job.status }}
+        channel: '#alerto26-deployments'
+        text: 'Production deployment ${{ job.status }} for ${{ github.ref }}'
+      env:
+        SLACK_WEBHOOK_URL: ${{ secrets.SLACK_WEBHOOK_URL }}
