@@ -1,0 +1,112 @@
+cd backend
+source .venv/bin/activate
+
+python manage.py runserver   
+
+locust -f locustfile.py --host=http://localhost:8000
+
+pip freeze > requirements.txt
+pipreqs . --force   
+
+python manage.py migrate
+
+curl -X POST http://localhost:8000/graphql/ \
+  -H "Content-Type: application/json" \
+  -d '{"query": "{ emergencies { id } }"}'
+
+python test_postgres_graphql.py
+
+lsof -i :8000
+brew services start postgresql
+Run PostgreSQL container
+docker run --name postgres -e POSTGRES_PASSWORD=123456 -d -p 5432:5432 postgres
+Connect to it
+docker exec -it postgres psql -U postgres
+=======================GIT:
+git branch -a
+
+# Create main branches
+git branch develop
+git checkout -b develop
+
+# Create feature branches as needed
+git checkout -b feature/backend-models
+git checkout -b feature/flutter-ui
+git checkout -b feature/react-admin
+git checkout -b feature/infrastructure
+git checkout -b feature/security-configuration
+
+Show merged / unmerged branches
+# Already merged into current branch
+git branch --merged
+
+# Not yet merged
+git branch --no-merged
+
+Show branch creation point:
+git show-branch
+
+Pretty one-liner:
+git branch --format='%(refname:short)  %(committerdate:relative)'
+
+Delete a local branch:
+git branch -d feature/backend-models
+
+Delete a remote branch:
+git push origin --delete branch_name
+
+After deleting remote branches:
+git fetch --prune
+
+Verify branch exists on remote:
+git branch -r
+
+Pushes ALL local branches:
+git push --all
+
+Fetch remote updates (NO merge, NO rebase):
+git fetch origin
+
+See which files differ (most useful):
+git diff --name-only main..origin/main
+
+See commit list from remote:
+git log --oneline main..origin/main
+
+Reverse direction (local-only commits):
+git log --oneline origin/main..main
+
+See changes per file with stats:
+git diff --stat main..origin/main
+
+If you want to inspect a remote file without pulling:
+git show origin/main:README.md
+
+If you want to integrate remote changes:
+git pull --rebase origin main
+
+If you want to discard local and accept remote:
+git reset --hard origin/main
+
+Option 1 (RECOMMENDED):Stash → Rebase → Reapply:
+git stash push -m "WIP before rebase"
+git stash list
+Pull with rebase:
+git pull --rebase origin main
+Reapply your changes:
+git stash pop
+If conflicts occur:
+Resolve conflicts
+Then:
+git add .
+git rebase --continue
+
+Option 2: Commit WIP (if changes are meaningful)
+git add .
+git commit -m "WIP: local changes before rebase"
+git pull --rebase origin main
+"to squash or clean history."
+
+Option 3: Discard local changes (ONLY if safe):
+git reset --hard
+git pull --rebase origin main

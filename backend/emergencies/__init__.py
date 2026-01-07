@@ -1,1 +1,1 @@
-default_app_config = "emergencies.apps.EmergenciesConfig"
+default_app_config = "emergencies.EmergenciesConfig"
