@@ -1,8 +1,6 @@
 # backend/providers/models.py
 import uuid
 from django.db import models
-from django.contrib.gis.db import models as gis_models
-from django.contrib.postgres.fields import ArrayField, JSONField
 
 class Provider(models.Model):
     SERVICE_TYPES = [
@@ -28,7 +26,7 @@ class Provider(models.Model):
     user = models.OneToOneField('users.User', on_delete=models.CASCADE, related_name='provider_profile')
     
     # Service information
-    service_types = ArrayField(models.CharField(max_length=50, choices=SERVICE_TYPES))
+    service_types = models.JSONField(default=list)  # Changed from ArrayField
     certification_level = models.CharField(max_length=50, blank=True)
     license_number = models.CharField(max_length=100, blank=True)
     is_verified = models.BooleanField(default=False)
@@ -37,8 +35,13 @@ class Provider(models.Model):
     
     # Current state
     status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='OFFLINE')
-    current_location = gis_models.PointField(geography=True, null=True, blank=True)
-    current_emergency = models.ForeignKey('emergencies.Emergency', on_delete=models.SET_NULL, null=True, blank=True, related_name='active_provider')
+    
+    # Location - using simple Float fields instead of PointField for now
+    latitude = models.FloatField(null=True, blank=True)
+    longitude = models.FloatField(null=True, blank=True)
+    
+    # Fix: Use string reference instead of direct model reference
+    current_emergency_id = models.UUIDField(null=True, blank=True)  # Store ID instead of ForeignKey
     
     # Vehicle information
     vehicle_type = models.CharField(max_length=50, blank=True)
@@ -53,7 +56,7 @@ class Provider(models.Model):
     rating_count = models.IntegerField(default=0)
     
     # Availability
-    schedule = JSONField(default=dict, blank=True)  # Weekly schedule
+    schedule = models.JSONField(default=dict, blank=True)  # Changed to JSONField
     last_ping = models.DateTimeField(null=True, blank=True)
     max_distance = models.IntegerField(default=50000)  # Max service distance in meters
     
@@ -65,4 +68,15 @@ class Provider(models.Model):
         db_table = 'providers'
     
     def __str__(self):
-        return f"{self.user.get_full_name()} - {', '.join(self.service_types)}"
+        return f"{self.user.get_full_name()}"
+    
+    @property
+    def current_emergency(self):
+        """Get the current emergency instance"""
+        if self.current_emergency_id:
+            from emergencies.models import Emergency
+            try:
+                return Emergency.objects.get(id=self.current_emergency_id)
+            except Emergency.DoesNotExist:
+                return None
+        return None
