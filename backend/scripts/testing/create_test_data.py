@@ -25,17 +25,17 @@ print("✅ Models imported successfully")
 
 # Clear existing data (optional - comment out if you want to keep existing data)
 print("\n🗑️  Clearing existing data...")
-# Emergency.objects.all().delete()
-# Provider.objects.all().delete()
-# User.objects.filter(is_superuser=False).delete()  # Keep admin users
+Emergency.objects.all().delete()
+Provider.objects.all().delete()
+User.objects.filter(is_superuser=False).delete()  # Keep admin users
 
 # Create regular citizen users
 print("\n👥 Creating citizen users...")
 citizens = []
 
 user_types = ['CITIZEN', 'CITIZEN', 'CITIZEN', 'FIRST_RESPONDER', 'ADMIN']  # Mostly citizens
-
-for i in range(10):
+#Users
+for i in range(1000):
     try:
         user = User.objects.create_user(
             username=f"citizen{i+1}",
@@ -64,7 +64,7 @@ for i in range(10):
             })
         )
         citizens.append(user)
-        print(f"  ✅ {user.username} ({user.user_type})")
+        # print(f"  ✅ {user.username} ({user.user_type})")
     except Exception as e:
         print(f"  ⚠️  Error creating citizen{i+1}: {str(e)[:100]}")
 
@@ -73,8 +73,8 @@ print(f"📊 Created {len(citizens)} citizen users")
 # Create provider users
 print("\n👨‍⚕️ Creating provider users...")
 provider_users = []
-
-for i in range(8):
+#Providers
+for i in range(500):
     try:
         user = User.objects.create_user(
             username=f"provider_user{i+1}",
@@ -94,7 +94,7 @@ for i in range(8):
             })
         )
         provider_users.append(user)
-        print(f"  ✅ {user.username} (PROVIDER)")
+        # print(f"  ✅ {user.username} (PROVIDER)")
     except Exception as e:
         print(f"  ⚠️  Error creating provider user{i+1}: {str(e)[:100]}")
 
@@ -110,7 +110,7 @@ if not User.objects.filter(username='admin').exists():
             phone='+639000000001',
             user_type='ADMIN'
         )
-        print(f"  ✅ {admin.username} (ADMIN superuser)")
+        # print(f"  ✅ {admin.username} (ADMIN superuser)")
     except Exception as e:
         print(f"  ⚠️  Error creating admin: {str(e)[:100]}")
 
@@ -167,7 +167,7 @@ for i, user in enumerate(provider_users[:8]):  # Use first 8 provider users
             service_fee=Decimal(str(round(random.uniform(200, 800), 2))),
         )
         providers.append(provider)
-        print(f"  ✅ {user.first_name}: {provider.service_types} ({provider.status})")
+        # print(f"  ✅ {user.first_name}: {provider.service_types} ({provider.status})")
     except Exception as e:
         print(f"  ❌ Error creating provider for {user.username}: {str(e)[:100]}")
 
@@ -190,7 +190,8 @@ symptoms_examples = {
 }
 
 emergencies_created = 0
-for i in range(25):
+#emergency
+for i in range(1001):
     try:
         # Random citizen reporter (or anonymous)
         reporter = random.choice(citizens) if random.choice([True, True, False]) else None  # 2/3 chance
@@ -245,7 +246,7 @@ for i in range(25):
             assigned_provider.save()
         
         emergencies_created += 1
-        print(f"  ✅ {emergency.code}: {emergency_type} in {emergency.city} ({emergency.status})")
+        # print(f"  ✅ {emergency.code}: {emergency_type} in {emergency.city} ({emergency.status})")
         
     except Exception as e:
         print(f"  ⚠️  Error creating emergency {i+1}: {str(e)[:100]}")
@@ -304,119 +305,119 @@ print("\n" + "=" * 60)
 print("🚀 GRAPHQL API READY FOR TESTING")
 print("=" * 60)
 
-print('''
-🌐 Open in browser: http://localhost:8000/graphql/
+# print('''
+# 🌐 Open in browser: http://localhost:8000/graphql/
 
-📋 Sample GraphQL Queries:
+# 📋 Sample GraphQL Queries:
 
-1. Get all emergencies:
-{
-  emergencies {
-    id
-    code
-    emergencyType
-    priority
-    status
-    city
-    latitude
-    longitude
-    isAnonymous
-    createdAt
-  }
-}
+# 1. Get all emergencies:
+# {
+#   emergencies {
+#     id
+#     code
+#     emergencyType
+#     priority
+#     status
+#     city
+#     latitude
+#     longitude
+#     isAnonymous
+#     createdAt
+#   }
+# }
 
-2. Get all providers:
-{
-  providers {
-    id
-    user {
-      firstName
-      lastName
-      email
-      phone
-    }
-    serviceTypes
-    status
-    latitude
-    longitude
-    rating
-    totalEmergencies
-    isVerified
-  }
-}
+# 2. Get all providers:
+# {
+#   providers {
+#     id
+#     user {
+#       firstName
+#       lastName
+#       email
+#       phone
+#     }
+#     serviceTypes
+#     status
+#     latitude
+#     longitude
+#     rating
+#     totalEmergencies
+#     isVerified
+#   }
+# }
 
-3. Get active emergencies:
-{
-  emergencies(status: "pending") {
-    code
-    emergencyType
-    city
-    description
-    createdAt
-  }
-}
+# 3. Get active emergencies:
+# {
+#   emergencies(status: "pending") {
+#     code
+#     emergencyType
+#     city
+#     description
+#     createdAt
+#   }
+# }
 
-4. Get available providers:
-{
-  providers(status: "AVAILABLE") {
-    user {
-      firstName
-      lastName
-    }
-    serviceTypes
-    vehicleType
-    vehicleCapacity
-    rating
-    maxDistance
-  }
-}
+# 4. Get available providers:
+# {
+#   providers(status: "AVAILABLE") {
+#     user {
+#       firstName
+#       lastName
+#     }
+#     serviceTypes
+#     vehicleType
+#     vehicleCapacity
+#     rating
+#     maxDistance
+#   }
+# }
 
-5. Get emergency statistics:
-{
-  emergencies {
-    emergencyType
-    status
-    priority
-    city
-  }
-}
+# 5. Get emergency statistics:
+# {
+#   emergencies {
+#     emergencyType
+#     status
+#     priority
+#     city
+#   }
+# }
 
-6. Test mutation (create emergency):
-mutation {
-  createEmergency(
-    emergencyType: "medical"
-    latitude: 14.5995
-    longitude: 120.9842
-  ) {
-    emergency {
-      id
-      code
-      emergencyType
-      latitude
-      longitude
-      createdAt
-    }
-  }
-}
-''')
+# 6. Test mutation (create emergency):
+# mutation {
+#   createEmergency(
+#     emergencyType: "medical"
+#     latitude: 14.5995
+#     longitude: 120.9842
+#   ) {
+#     emergency {
+#       id
+#       code
+#       emergencyType
+#       latitude
+#       longitude
+#       createdAt
+#     }
+#   }
+# }
+# ''')
 
-print("\n💻 Test with curl:")
-print('''
-# Quick test - count data:
-curl -X POST http://localhost:8000/graphql/ \\
-  -H "Content-Type: application/json" \\
-  -d '{"query": "{ emergencies { id } providers { id } users { id } }"}'
+# print("\n💻 Test with curl:")
+# print('''
+# # Quick test - count data:
+# curl -X POST http://localhost:8000/graphql/ \\
+#   -H "Content-Type: application/json" \\
+#   -d '{"query": "{ emergencies { id } providers { id } users { id } }"}'
 
-# Get emergencies:
-curl -X POST http://localhost:8000/graphql/ \\
-  -H "Content-Type: application/json" \\
-  -d '{"query": "{ emergencies { code emergencyType priority status city } }"}'
+# # Get emergencies:
+# curl -X POST http://localhost:8000/graphql/ \\
+#   -H "Content-Type: application/json" \\
+#   -d '{"query": "{ emergencies { code emergencyType priority status city } }"}'
 
-# Get providers:
-curl -X POST http://localhost:8000/graphql/ \\
-  -H "Content-Type: application/json" \\
-  -d '{"query": "{ providers { user { firstName lastName } serviceTypes status rating } }"}'
-''')
+# # Get providers:
+# curl -X POST http://localhost:8000/graphql/ \\
+#   -H "Content-Type: application/json" \\
+#   -d '{"query": "{ providers { user { firstName lastName } serviceTypes status rating } }"}'
+# ''')
 
 print("\n✅ Test data creation complete!")
 print("🔑 Admin login: username='admin', password='admin123'")

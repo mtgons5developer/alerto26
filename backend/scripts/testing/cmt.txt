@@ -1,7 +1,21 @@
-create a commit message with all the updates we've done so far.
+create a commit message with all the updates/fixes we've done so far.
 
 git checkout feature/backend-core
-git commit -m "feat(backend): "
+git commit -m "feat(backend): implement authentication system and staff dashboard
+
+- Fix template configuration and directory structure
+- Implement custom login system with Django auth views
+- Create comprehensive staff dashboard with user statistics
+- Add JWT authentication and session management
+- Configure URL routing for login/logout/dashboard
+- Update settings for template loading and authentication
+- Create custom User model with emergency features
+- Add diagnostic tools and test data scripts
+- Fix database configuration and model relationships
+- Implement responsive templates with modern CSS
+- Admin setup
+- Providers model updates
+- flake8 config"
 
 git checkout feature/react-admin-core
 git commit -m "feat(frontend): "

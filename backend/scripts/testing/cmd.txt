@@ -1,5 +1,7 @@
 cd backend
-source .venv/bin/activate
+source venv/bin/activate
+
+docker start postgres
 
 python manage.py runserver   
 
@@ -14,12 +16,20 @@ curl -X POST http://localhost:8000/graphql/ \
   -H "Content-Type: application/json" \
   -d '{"query": "{ emergencies { id } }"}'
 
-python test_postgres_graphql.py
+python scripts/testing/
 
 lsof -i :8000
 brew services start postgresql
-Run PostgreSQL container
-docker run --name postgres -e POSTGRES_PASSWORD=123456 -d -p 5432:5432 postgres
+brew services stop postgresql
+Run PostgreSQL container:
+
+docker run \
+  --name postgres \
+  -e POSTGRES_PASSWORD=123456 \
+  -e POSTGRES_DB=alerto24 \
+  -p 5432:5432 \
+  -d postgres:14
+
 Connect to it
 docker exec -it postgres psql -U postgres
 =======================GIT:
