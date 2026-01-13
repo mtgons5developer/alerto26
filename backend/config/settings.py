@@ -39,16 +39,21 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
 
     # Your apps
-    'emergencies',  # Add this
-    'providers',    # Add this if exists
-    'users',        # Add this if exists
+    # 'emergencies',  # Add this
+    # 'providers',    # Add this if exists
+    # 'users',        # Add this if exists
     'notifications', # Add this if exists
-    
+
+    "users.apps.UsersConfig",
+    "providers.apps.ProvidersConfig",
+    "emergencies.apps.EmergenciesConfig",
+
     # Third party apps
     'graphene_django',  # If using GraphQL
     'graphql_jwt',
 
     'corsheaders',
+    "debug_toolbar",
 ]
 
 # Authentication backends for JWT
@@ -66,6 +71,7 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'config.middleware.AppendSlashMiddleware',
+    "debug_toolbar.middleware.DebugToolbarMiddleware",
 ]
 
 ROOT_URLCONF = 'config.urls'
@@ -73,7 +79,9 @@ ROOT_URLCONF = 'config.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [
+            os.path.join(BASE_DIR, 'templates'),  # Add this line!
+        ],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -168,3 +176,13 @@ GRAPHQL_JWT = {
     'JWT_VERIFY_EXPIRATION': True,
     'JWT_LONG_RUNNING_REFRESH_TOKEN': True,
 }
+
+# Login/Logout URLs
+LOGIN_URL = '/login/'  # Match your urls.py
+LOGIN_REDIRECT_URL = '/dashboard/'
+LOGOUT_REDIRECT_URL = '/login/'  # Match your urls.py
+
+# Session settings (for login to work properly)
+SESSION_COOKIE_AGE = 1209600  # 2 weeks in seconds
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = False
