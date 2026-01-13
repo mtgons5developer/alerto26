@@ -32,6 +32,12 @@ docker run \
 
 Connect to it
 docker exec -it postgres psql -U postgres
+
+SELECT column_name
+FROM information_schema.columns
+WHERE table_name = 'emergencies'
+ORDER BY ordinal_position;
+
 =======================GIT:
 git branch -a
 

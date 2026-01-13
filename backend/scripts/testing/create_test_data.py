@@ -25,9 +25,9 @@ print("✅ Models imported successfully")
 
 # Clear existing data (optional - comment out if you want to keep existing data)
 print("\n🗑️  Clearing existing data...")
-Emergency.objects.all().delete()
-Provider.objects.all().delete()
-User.objects.filter(is_superuser=False).delete()  # Keep admin users
+# Emergency.objects.all().delete()
+# Provider.objects.all().delete()
+# User.objects.filter(is_superuser=False).delete()  # Keep admin users
 
 # Create regular citizen users
 print("\n👥 Creating citizen users...")
