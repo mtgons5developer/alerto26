@@ -1,4 +1,5 @@
 from django.contrib import admin
+
 from .models import Provider
 
 
@@ -44,23 +45,42 @@ class ProviderAdmin(admin.ModelAdmin):
     # Organize fields on the add/edit form
     fieldsets = (
         ("User Info", {"fields": ("user",)}),
-        ("Service Details", {
-            "fields": (
-                "service_types",
-                "certification_level",
-                "license_number",
-                "is_verified",
-                "verification_date",
-                "is_active",
-            )
-        }),
-        ("Current Status", {"fields": ("status", "latitude", "longitude", "current_emergency_id")}),
-        ("Vehicle Info", {
-            "fields": ("vehicle_type", "vehicle_number", "vehicle_capacity")
-        }),
-        ("Performance Metrics", {
-            "fields": ("total_emergencies", "completed_emergencies", "avg_response_time", "rating", "rating_count")
-        }),
-        ("Availability & Schedule", {"fields": ("schedule", "last_ping", "max_distance")}),
+        (
+            "Service Details",
+            {
+                "fields": (
+                    "service_types",
+                    "certification_level",
+                    "license_number",
+                    "is_verified",
+                    "verification_date",
+                    "is_active",
+                )
+            },
+        ),
+        (
+            "Current Status",
+            {"fields": ("status", "latitude", "longitude", "current_emergency_id")},
+        ),
+        (
+            "Vehicle Info",
+            {"fields": ("vehicle_type", "vehicle_number", "vehicle_capacity")},
+        ),
+        (
+            "Performance Metrics",
+            {
+                "fields": (
+                    "total_emergencies",
+                    "completed_emergencies",
+                    "avg_response_time",
+                    "rating",
+                    "rating_count",
+                )
+            },
+        ),
+        (
+            "Availability & Schedule",
+            {"fields": ("schedule", "last_ping", "max_distance")},
+        ),
         ("Financial", {"fields": ("hourly_rate", "service_fee")}),
     )

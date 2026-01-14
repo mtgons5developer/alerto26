@@ -1,6 +1,6 @@
 # test_graphql.py
+
 import requests
-import json
 
 url = "http://localhost:8000/graphql/"
 
@@ -28,10 +28,12 @@ try:
     print(f"Status: {response.status_code}")
     if response.status_code == 200:
         data = response.json()
-        emergencies = data.get('data', {}).get('emergencies', [])
-        providers = data.get('data', {}).get('providers', [])
-        
-        print(f"\n✅ Found {len(emergencies)} emergencies and {len(providers)} providers")
+        emergencies = data.get("data", {}).get("emergencies", [])
+        providers = data.get("data", {}).get("providers", [])
+
+        print(
+            f"\n✅ Found {len(emergencies)} emergencies and {len(providers)} providers"
+        )
         print("\n📊 Sample data:")
         if emergencies:
             print(f"First emergency: {emergencies[0]}")

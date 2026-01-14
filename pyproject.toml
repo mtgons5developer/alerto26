@@ -1,0 +1,29 @@
+# pyproject.toml
+[tool.ruff]
+line-length = 88
+target-version = "py39"
+
+# Linter rules
+[tool.ruff.lint]
+select = ["E", "W", "F", "I", "B"]
+ignore = ["E203", "E501"]
+exclude = [
+    "**/migrations/**",
+    "**/tests/**",
+    "**/__pycache__/**",
+    ".git",
+    ".venv",
+    "venv",
+    "build",
+    "dist",
+    "*.min.js",
+    "*.css",
+]
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+line-ending = "auto"
+
+[tool.ruff.lint.isort]
+known-first-party = ["backend", "users", "emergencies", "providers", "notifications"]  # Your Django apps
