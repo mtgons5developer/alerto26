@@ -3,15 +3,15 @@ from emergencies.models import Emergency
 
 # Map lowercase to uppercase
 type_mapping = {
-    'accident': 'CAR_ACCIDENT',
-    'fire': 'FIRE',
-    'medical': 'MEDICAL',
-    'natural_disaster': 'NATURAL_DISASTER',
-    'hazard': 'OTHER',
-    'car_accident': 'CAR_ACCIDENT',
-    'police': 'POLICE',
-    'utility': 'UTILITY',
-    'other': 'OTHER',
+    "accident": "CAR_ACCIDENT",
+    "fire": "FIRE",
+    "medical": "MEDICAL",
+    "natural_disaster": "NATURAL_DISASTER",
+    "hazard": "OTHER",
+    "car_accident": "CAR_ACCIDENT",
+    "police": "POLICE",
+    "utility": "UTILITY",
+    "other": "OTHER",
 }
 
 # Update existing records

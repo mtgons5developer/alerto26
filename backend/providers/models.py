@@ -1,5 +1,6 @@
 # backend/providers/models.py
 import uuid
+
 from django.db import models
 
 
@@ -39,9 +40,7 @@ class Provider(models.Model):
     is_active = models.BooleanField(default=True)
 
     # Current state
-    status = models.CharField(
-        max_length=20, choices=STATUS_CHOICES, default="OFFLINE"
-    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default="OFFLINE")
 
     # Location - using simple Float fields instead of PointField for now
     latitude = models.FloatField(null=True, blank=True)
@@ -65,21 +64,15 @@ class Provider(models.Model):
     rating_count = models.IntegerField(default=0)
 
     # Availability
-    schedule = models.JSONField(  # Changed to JSONField
-        default=dict, blank=True
-    )
+    schedule = models.JSONField(default=dict, blank=True)  # Changed to JSONField
     last_ping = models.DateTimeField(null=True, blank=True)
-    max_distance = models.IntegerField(  # Max service distance in meters
-        default=50000
-    )
+    max_distance = models.IntegerField(default=50000)  # Max service distance in meters
 
     # Financial
     hourly_rate = models.DecimalField(
         max_digits=10, decimal_places=2, null=True, blank=True
     )
-    service_fee = models.DecimalField(
-        max_digits=10, decimal_places=2, default=0.00
-    )
+    service_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
 
     class Meta:
         db_table = "providers"

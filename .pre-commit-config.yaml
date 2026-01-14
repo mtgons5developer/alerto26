@@ -1,0 +1,18 @@
+# .pre-commit-config.yaml (new)
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.9  # Use latest version
+    hooks:
+      # Run the linter
+      - id: ruff
+        args: [--fix]
+
+      # Run the formatter
+      - id: ruff-format
+        exclude: |
+          (?x)^(
+            .*migrations/.*\.py$|      # Exclude all migration files
+            .*tests/.*\.py$|           # Optional: exclude tests
+            .*\.min\.js$|              # Optional: minified JS
+            .*\.css$                   # Optional: CSS files
+          )$
