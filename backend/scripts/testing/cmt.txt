@@ -1,0 +1,18 @@
+create a commit message with all the updates/fixes we've done so far.
+
+git checkout feature/backend-core
+git commit -m "feat(backend): "
+
+git checkout feature/react-admin-core
+git commit -m "feat(frontend): "
+
+git checkout feature/flutter-core
+git commit -m "feat(mobile): "
+
+git checkout feature/infrastructure-core
+git commit -m "feat(infra): "
+
+git checkout feature/security-configuration-core
+git commit -m "feat(security): "
+
+

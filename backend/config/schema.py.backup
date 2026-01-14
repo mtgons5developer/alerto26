@@ -1,0 +1,52 @@
+import graphene
+import graphql_jwt
+from graphene_django import DjangoObjectType
+from emergencies.models import Emergency
+from providers.models import Provider
+
+class EmergencyType(DjangoObjectType):
+    class Meta:
+        model = Emergency
+        fields = '__all__'
+
+class ProviderType(DjangoObjectType):
+    class Meta:
+        model = Provider
+        fields = '__all__'
+
+class Query(graphene.ObjectType):
+    emergencies = graphene.List(EmergencyType)
+    providers = graphene.List(ProviderType)
+    
+    def resolve_emergencies(self, info):
+        return Emergency.objects.all()
+    
+    def resolve_providers(self, info):
+        return Provider.objects.all()
+
+class CreateEmergency(graphene.Mutation):
+    class Arguments:
+        emergency_type = graphene.String(required=True)
+        latitude = graphene.Float(required=True)
+        longitude = graphene.Float(required=True)
+    
+    emergency = graphene.Field(EmergencyType)
+    
+    def mutate(self, info, emergency_type, latitude, longitude):
+        emergency = Emergency.objects.create(
+            emergency_type=emergency_type,
+            latitude=latitude,
+            longitude=longitude
+        )
+        return CreateEmergency(emergency=emergency)
+
+class Mutation(graphene.ObjectType):
+    # JWT Authentication mutations - ADD THESE 3 LINES
+    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    verify_token = graphql_jwt.Verify.Field()
+    refresh_token = graphql_jwt.Refresh.Field()
+    
+    # Your existing mutation
+    create_emergency = CreateEmergency.Field()
+
+schema = graphene.Schema(query=Query, mutation=Mutation)

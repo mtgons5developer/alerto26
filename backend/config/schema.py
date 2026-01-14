@@ -1,124 +1,112 @@
-# backend/config/schema.py
 import graphene
 import graphql_jwt
-from graphene_django import DjangoObjectType
 from django.contrib.auth import get_user_model
+from graphene_django import DjangoObjectType
+
 from emergencies.models import Emergency
 from providers.models import Provider
 
+User = get_user_model()
+
+
 class UserType(DjangoObjectType):
     class Meta:
-        model = get_user_model()
-        exclude = ('password',)
+        model = User
+        fields = ("id", "username", "email", "first_name", "last_name")
+        interfaces = (graphene.relay.Node,)
+
+
+class ObtainJSONWebToken(graphql_jwt.JSONWebTokenMutation):
+    user = graphene.Field(UserType)
+
+    @classmethod
+    def resolve(cls, root, info, **kwargs):
+        return cls(user=info.context.user)
+
 
 class EmergencyType(DjangoObjectType):
-    # Define location as a custom scalar or exclude it
-    location_lat = graphene.Float()
-    location_lng = graphene.Float()
-    
     class Meta:
         model = Emergency
-        fields = ("id", "code", "emergencyType", "priority", "status", "createdAt")
-        # Or exclude location: exclude = ("location",)
-    
-    def resolve_location_lat(self, info):
-        if self.location:
-            return self.location.y  # latitude
-        return None
-    
-    def resolve_location_lng(self, info):
-        if self.location:
-            return self.location.x  # longitude
-        return None
+        fields = "__all__"
+
 
 class ProviderType(DjangoObjectType):
     class Meta:
         model = Provider
-        interfaces = (graphene.relay.Node,)
+        fields = "__all__"
+
 
 class Query(graphene.ObjectType):
-    # User queries
-    me = graphene.Field(UserType)
-    users = graphene.List(UserType)
-    user = graphene.Field(UserType, id=graphene.ID())
-    
-    # Emergency queries
     emergencies = graphene.List(EmergencyType)
-    emergency = graphene.Field(EmergencyType, id=graphene.ID())
-    active_emergencies = graphene.List(EmergencyType)
-    
-    # Provider queries
     providers = graphene.List(ProviderType)
-    provider = graphene.Field(ProviderType, id=graphene.ID())
-    nearby_providers = graphene.List(
-        ProviderType,
-        lat=graphene.Float(required=True),
-        lng=graphene.Float(required=True),
-        radius=graphene.Int(default_value=5000),
-        service_type=graphene.String()
-    )
-    
-    def resolve_me(self, info):
-        user = info.context.user
-        if user.is_anonymous:
-            raise Exception('Authentication required')
-        return user
-    
-    def resolve_nearby_providers(self, info, lat, lng, radius, service_type=None):
-        from django.contrib.gis.geos import Point
-        from django.contrib.gis.db.models.functions import Distance
-        
-        point = Point(lng, lat, srid=4326)
-        queryset = Provider.objects.filter(
-            is_active=True,
-            status='AVAILABLE'
-        ).annotate(
-            distance=Distance('current_location', point)
-        ).filter(
-            distance__lte=radius
-        ).order_by('distance')
-        
-        if service_type:
-            queryset = queryset.filter(service_types__contains=[service_type])
-        
-        return queryset
+
+    def resolve_emergencies(self, info):
+        return Emergency.objects.all()
+
+    def resolve_providers(self, info):
+        return Provider.objects.all()
+
 
 class CreateEmergency(graphene.Mutation):
     class Arguments:
         emergency_type = graphene.String(required=True)
-        lat = graphene.Float(required=True)
-        lng = graphene.Float(required=True)
+        user_id = graphene.UUID(required=True)  # Add this
+        latitude = graphene.Float(required=True)
+        longitude = graphene.Float(required=True)
         description = graphene.String()
-        symptoms = graphene.List(graphene.String)
-    
+
     emergency = graphene.Field(EmergencyType)
-    
-    def mutate(self, info, emergency_type, lat, lng, description="", symptoms=None):
-        user = info.context.user
-        if user.is_anonymous:
-            raise Exception('Authentication required')
-        
-        from django.contrib.gis.geos import Point
-        from emergencies.models import Emergency
-        
-        location = Point(lng, lat, srid=4326)
-        
+
+    def mutate(
+        self, info, emergency_type, latitude, longitude, user_id, description=None
+    ):
+        from django.contrib.auth import get_user_model
+
+        User = get_user_model()
+
+        try:
+            user = User.objects.get(id=user_id)
+        except User.DoesNotExist as e:
+            # Add context but preserve original exception type
+            e.message = f"User with ID {user_id} does not exist"
+            raise
+
         emergency = Emergency.objects.create(
             user=user,
             emergency_type=emergency_type,
-            location=location,
-            description=description,
-            symptoms=symptoms or []
+            latitude=latitude,
+            longitude=longitude,
+            description=description or "",
         )
-        
         return CreateEmergency(emergency=emergency)
 
+
+class CreateUser(graphene.Mutation):
+    user = graphene.Field(UserType)
+
+    class Arguments:
+        username = graphene.String(required=True)
+        password = graphene.String(required=True)
+        email = graphene.String(required=True)
+        first_name = graphene.String()
+        last_name = graphene.String()
+
+    def mutate(self, info, username, password, email, first_name="", last_name=""):
+        user = User.objects.create_user(
+            username=username,
+            email=email,
+            password=password,
+            first_name=first_name,
+            last_name=last_name,
+        )
+        return CreateUser(user=user)
+
+
 class Mutation(graphene.ObjectType):
-    create_emergency = CreateEmergency.Field()
-    
-    # Authentication
-    token_auth = graphql_jwt.ObtainJSONWebToken.Field()
+    token_auth = ObtainJSONWebToken.Field()
     verify_token = graphql_jwt.Verify.Field()
     refresh_token = graphql_jwt.Refresh.Field()
+    create_emergency = CreateEmergency.Field()
+
 
 schema = graphene.Schema(query=Query, mutation=Mutation)

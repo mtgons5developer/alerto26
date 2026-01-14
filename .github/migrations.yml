@@ -1,0 +1,81 @@
+name: Database Migrations
+
+on:
+  pull_request:
+    branches: [ main, develop ]
+    paths:
+      - 'backend/**/migrations/*.py'
+      - 'backend/**/models.py'
+
+jobs:
+  check-migrations:
+    name: Check Django Migrations
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15-postgis
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: test_migrations
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.11'
+
+    - name: Install dependencies
+      run: |
+        cd backend
+        pip install -r requirements.txt
+
+    - name: Check for missing migrations
+      run: |
+        cd backend
+        python manage.py makemigrations --check --dry-run
+        if [ $? -eq 0 ]; then
+          echo "✅ All migrations are up to date"
+        else
+          echo "❌ Missing migrations detected"
+          echo "Run: python manage.py makemigrations"
+          exit 1
+        fi
+
+    - name: Test migration rollback
+      run: |
+        cd backend
+        # Apply migrations
+        python manage.py migrate
+        
+        # Create a test migration
+        python manage.py makemigrations --empty test_app --name test_rollback
+        
+        # Apply test migration
+        python manage.py migrate
+        
+        # Rollback test migration
+        python manage.py migrate test_app $(python manage.py showmigrations test_app | grep test_rollback | cut -d' ' -f1)
+        
+        echo "✅ Migration rollback test passed"
+
+    - name: Generate migration SQL
+      run: |
+        cd backend
+        python manage.py sqlmigrate emergencies 0001 > migrations_sql.txt
+        python manage.py sqlmigrate users 0001 >> migrations_sql.txt
+        
+        # Check for destructive operations
+        if grep -i "drop table\|delete from\|alter table.*drop column" migrations_sql.txt; then
+          echo "⚠️ WARNING: Destructive migration operations detected"
+          cat migrations_sql.txt
+        fi

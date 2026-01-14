@@ -1,3 +1,6 @@
-from django.shortcuts import render
+# Either remove or use the import
+from django.http import HttpResponse
 
-# Create your views here.
+
+def test_debug(request):
+    return HttpResponse("Debug works!")
