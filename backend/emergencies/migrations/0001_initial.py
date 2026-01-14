@@ -5,38 +5,84 @@ import uuid
 
 
 class Migration(migrations.Migration):
-
     initial = True
 
-    dependencies = [
-    ]
+    dependencies = []
 
     operations = [
         migrations.CreateModel(
-            name='Emergency',
+            name="Emergency",
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('code', models.CharField(blank=True, max_length=20, unique=True)),
-                ('emergency_type', models.CharField(choices=[('MEDICAL', 'Medical Emergency'), ('FIRE', 'Fire'), ('POLICE', 'Police'), ('CAR_ACCIDENT', 'Car Accident'), ('NATURAL_DISASTER', 'Natural Disaster'), ('UTILITY', 'Utility Failure'), ('OTHER', 'Other')], max_length=50)),
-                ('priority', models.CharField(choices=[('RED', 'Critical - Immediate response'), ('ORANGE', 'High - Urgent'), ('YELLOW', 'Medium - Prompt'), ('GREEN', 'Low - Routine')], default='YELLOW', max_length=20)),
-                ('status', models.CharField(choices=[('PENDING', 'Pending'), ('DISPATCHED', 'Dispatched'), ('EN_ROUTE', 'En Route'), ('ON_SITE', 'On Site'), ('RESOLVED', 'Resolved'), ('CANCELLED', 'Cancelled')], default='PENDING', max_length=20)),
-                ('latitude', models.FloatField()),
-                ('longitude', models.FloatField()),
-                ('address', models.TextField(blank=True)),
-                ('city', models.CharField(blank=True, max_length=100)),
-                ('symptoms', models.JSONField(blank=True, default=list)),
-                ('patient_info', models.JSONField(blank=True, default=dict)),
-                ('description', models.TextField(blank=True)),
-                ('attachments', models.JSONField(blank=True, default=list)),
-                ('is_anonymous', models.BooleanField(default=False)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('dispatched_at', models.DateTimeField(blank=True, null=True)),
-                ('arrived_at', models.DateTimeField(blank=True, null=True)),
-                ('resolved_at', models.DateTimeField(blank=True, null=True)),
+                (
+                    "id",
+                    models.UUIDField(
+                        default=uuid.uuid4,
+                        editable=False,
+                        primary_key=True,
+                        serialize=False,
+                    ),
+                ),
+                ("code", models.CharField(blank=True, max_length=20, unique=True)),
+                (
+                    "emergency_type",
+                    models.CharField(
+                        choices=[
+                            ("MEDICAL", "Medical Emergency"),
+                            ("FIRE", "Fire"),
+                            ("POLICE", "Police"),
+                            ("CAR_ACCIDENT", "Car Accident"),
+                            ("NATURAL_DISASTER", "Natural Disaster"),
+                            ("UTILITY", "Utility Failure"),
+                            ("OTHER", "Other"),
+                        ],
+                        max_length=50,
+                    ),
+                ),
+                (
+                    "priority",
+                    models.CharField(
+                        choices=[
+                            ("RED", "Critical - Immediate response"),
+                            ("ORANGE", "High - Urgent"),
+                            ("YELLOW", "Medium - Prompt"),
+                            ("GREEN", "Low - Routine"),
+                        ],
+                        default="YELLOW",
+                        max_length=20,
+                    ),
+                ),
+                (
+                    "status",
+                    models.CharField(
+                        choices=[
+                            ("PENDING", "Pending"),
+                            ("DISPATCHED", "Dispatched"),
+                            ("EN_ROUTE", "En Route"),
+                            ("ON_SITE", "On Site"),
+                            ("RESOLVED", "Resolved"),
+                            ("CANCELLED", "Cancelled"),
+                        ],
+                        default="PENDING",
+                        max_length=20,
+                    ),
+                ),
+                ("latitude", models.FloatField()),
+                ("longitude", models.FloatField()),
+                ("address", models.TextField(blank=True)),
+                ("city", models.CharField(blank=True, max_length=100)),
+                ("symptoms", models.JSONField(blank=True, default=list)),
+                ("patient_info", models.JSONField(blank=True, default=dict)),
+                ("description", models.TextField(blank=True)),
+                ("attachments", models.JSONField(blank=True, default=list)),
+                ("is_anonymous", models.BooleanField(default=False)),
+                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ("dispatched_at", models.DateTimeField(blank=True, null=True)),
+                ("arrived_at", models.DateTimeField(blank=True, null=True)),
+                ("resolved_at", models.DateTimeField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'emergencies',
-                'ordering': ['-created_at'],
+                "db_table": "emergencies",
+                "ordering": ["-created_at"],
             },
         ),
     ]

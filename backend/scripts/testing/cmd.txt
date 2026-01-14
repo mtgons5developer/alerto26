@@ -3,12 +3,12 @@ source venv/bin/activate
 
 docker start postgres
 
-python manage.py runserver   
+python manage.py runserver
 
 locust -f locustfile.py --host=http://localhost:8000
 
 pip freeze > requirements.txt
-pipreqs . --force   
+pipreqs . --force
 
 python manage.py migrate
 
@@ -17,6 +17,34 @@ curl -X POST http://localhost:8000/graphql/ \
   -d '{"query": "{ emergencies { id } }"}'
 
 python scripts/testing/
+
+============Lint/Format/Sort============
+# Clear any cached errors
+rm -rf .ruff_cache
+
+# Test the configuration
+ruff check --config pyproject.toml --show-settings .
+
+Lint only:
+ruff check .
+
+Format code:
+ruff format .
+
+Auto-fix (safe fixes):
+ruff check . --fix
+
+Import sorting only (isort replacement):
+ruff check . --select I --fix
+
+# Check what Ruff would change
+ruff format --check --diff .
+
+# See all diagnostics
+ruff check --output-format=full .
+
+# Generate configuration from existing setup
+ruff check --generate-config > ruff.toml
 
 lsof -i :8000
 brew services start postgresql
